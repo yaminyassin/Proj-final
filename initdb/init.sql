@@ -3,10 +3,9 @@ CREATE DATABASE location
     OWNER = postgres
     ENCODING = 'UTF8'
     TABLESPACE = pg_default
-    CONNECTION LIMIT = -1;
 
     
-/*
+
 CREATE TABLE public.regiao
 (
     geom geometry(Polygon,4326),
@@ -58,6 +57,3 @@ CREATE INDEX sidx_parque_geom
     ON public.parque USING gist
     (geom)
     TABLESPACE pg_default;
-
-*/
-

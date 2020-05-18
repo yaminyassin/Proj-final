@@ -46,3 +46,6 @@ volumes:
 #psql
 
 #docker exec -it docker_postgres psql -U postgres
+
+#para ver ip :
+  #docker inspect --format '{{ .NetworkSettings.IPAddress }}' $(docker ps -q)
