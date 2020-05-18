@@ -7,13 +7,14 @@ router.use(express.json())
 
 
 const pool = new Pool({
-    "user": "postgres",
-    "password" : "postgres",
-    "host" : "92.168.99.100",
-    "database" : "location",
-    "port" : 5555
+    user: "postgres",
+    password: "postgres",
+    host: "92.168.99.100",
+    database: "location",
+    port: 5555
 })
-
+        
+/*abaixo configuei cada tipo de link para devolver certos queries */
 
 router.get("/parksnearme/:lat/:long", async (req, res) =>{
     try {
