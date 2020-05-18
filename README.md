@@ -1,6 +1,5 @@
 # RestApi
 
-<<<<<<< HEAD
 1- Na linha de comandos:
     npm install express --save
     npm install cors --save
