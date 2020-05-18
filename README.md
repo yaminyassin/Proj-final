@@ -1,5 +1,6 @@
 # RestApi
 
+<<<<<<< HEAD
 1- Na linha de comandos:
     npm install express --save
     npm install cors --save
@@ -25,5 +26,3 @@
     -nos extensions ativar a extensao com nome "postgis";
 
     -copiar e colar o que está comentado no initdb/init.sql para criar e popular as tabelas
-
-
