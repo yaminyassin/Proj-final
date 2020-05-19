@@ -8,10 +8,10 @@ router.use(express.json())
 
 const pool = new Pool({
     user: "postgres",
-    password: "postgres",
-    host: "92.168.99.100",
+    password: "SofiaYamin123",
+    host: "localhost",
     database: "location",
-    port: 5555
+    port: 5432
 })
         
 /*abaixo configuei cada tipo de link para devolver certos queries */
@@ -26,7 +26,7 @@ router.get("/parksnearme/:lat/:long", async (req, res) =>{
                                         ROUND(st_distance(ST_SetSRID( ST_Point($1, $2)::geography, 4326),geom::geography)) as dist 
                                         FROM parque 
                                         WHERE nvagos <> 0
-                                        ORDER BY dist ASC limit 20`, [lat, long])
+                                        ORDER BY dist ASC limit 5`, [lat, long])
         res.status(200).json(query.rows)
     } catch (error) {
         console.error(error.message)
