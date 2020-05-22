@@ -23,10 +23,30 @@ router.get("/parksnearme/:lat/:long", async (req, res) =>{
         console.log([lat, long])
         const query = await pool.query(`SELECT st_asgeojson(geom) as geo,
                                         ROUND((nvagos/nlugares)*100) as Ocupado,
-                                        ROUND(st_distance(ST_SetSRID( ST_Point($1, $2)::geography, 4326),geom::geography)) as dist 
+                                        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geom::geography))/1000 as dist 
                                         FROM parque 
                                         WHERE nvagos <> 0
-                                        ORDER BY dist ASC limit 5`, [lat, long])
+                                        ORDER BY dist ASC limit 5`)
+        res.status(200).json(query.rows)
+    } catch (error) {
+        console.error(error.message)
+        res.status(400).send('failed to get info')
+    }
+})
+
+
+router.get("/parksnearme/:lat/:long/:dist", async(req, res) =>{
+    try {
+        var lat = req.params.lat;
+        var long = req.params.long;
+        var dist = req.params.dist;
+        console.log([lat, long])
+        const query = await pool.query(`SELECT st_asgeojson(geom) as geo,
+                                        ROUND((nvagos/nlugares)*100) as Ocupado,
+                                        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geom::geography))/1000 as dist 
+                                        FROM parque 
+                                        WHERE (nvagos <> 0 AND ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geom::geography)) > ${dist} )
+                                        ORDER BY dist ASC limit 5`)
         res.status(200).json(query.rows)
     } catch (error) {
         console.error(error.message)
