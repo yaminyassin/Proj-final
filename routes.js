@@ -40,13 +40,13 @@ router.get("/parksnearme/:lat/:long/:dist", async(req, res) =>{
         var lat = req.params.lat;
         var long = req.params.long;
         var dist = req.params.dist;
-        console.log([lat, long])
+        console.log([lat, long, dist])
         const query = await pool.query(`SELECT st_asgeojson(geom) as geo,
-                                        ROUND((nvagos/nlugares)*100) as Ocupado,
-                                        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geom::geography))/1000 as dist 
-                                        FROM parque 
-                                        WHERE (nvagos <> 0 AND ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geom::geography)) > ${dist} )
-                                        ORDER BY dist ASC limit 5`)
+                            ROUND((nvagos/nlugares)*100) as Ocupado,
+                            ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geom::geography))/1000 as dist 
+                            FROM parque 
+                            WHERE (nvagos <> 0 AND ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geom::geography))/1000 > ${dist})
+                            ORDER BY dist ASC limit 5`)
         res.status(200).json(query.rows)
     } catch (error) {
         console.error(error.message)
