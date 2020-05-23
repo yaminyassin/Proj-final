@@ -1,6 +1,8 @@
 const express = require("express");
 const {Pool} = require('pg');
 
+const config = require('./config');
+
 
 const router = express.Router();
 router.use(express.json())
