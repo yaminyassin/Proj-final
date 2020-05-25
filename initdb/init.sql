@@ -1,59 +1,45 @@
-CREATE DATABASE location
-    WITH 
-    OWNER = postgres
-    ENCODING = 'UTF8'
-    TABLESPACE = pg_default
-
-    
-
-CREATE TABLE public.regiao
+CREATE TABLE public.place
 (
-    geom geometry(Polygon,4326),
-    pais character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    cidade character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    concelho character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    CONSTRAINT regiao_pkey PRIMARY KEY (pais, cidade, concelho)
+	id SERIAL,
+    title character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    description character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    category character varying(255) COLLATE pg_catalog."default" NOT NULL,
+	geo geometry(Polygon,4326),
+    CONSTRAINT place_pkey PRIMARY KEY (id)
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE public.regiao
+ALTER TABLE public.place
     OWNER to postgres;
 -- Index: sidx_regiao_geom
 
 -- DROP INDEX public.sidx_regiao_geom;
 
-CREATE INDEX sidx_regiao_geom
-    ON public.regiao USING gist
-    (geom)
+CREATE INDEX sidx_place_geo
+    ON public.place USING gist
+    (geo)
     TABLESPACE pg_default;
 
-CREATE TABLE public.parque
+CREATE TABLE public.park
 (
-    id numeric NOT NULL,
+    id SERIAL,
     nlugares numeric,
     nvagos numeric,
-    pais character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    cidade character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    concelho character varying(255) COLLATE pg_catalog."default" NOT NULL,
     rua character varying(255) COLLATE pg_catalog."default" NOT NULL,
-    geom geometry(Polygon,4326),
-    CONSTRAINT parque_pkey PRIMARY KEY (id),
-    CONSTRAINT fk_regiao FOREIGN KEY (cidade, concelho, pais)
-        REFERENCES public.regiao (cidade, concelho, pais) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
+	geo geometry(Polygon,4326),
+    CONSTRAINT parque_pkey PRIMARY KEY (id)
 )
 
 TABLESPACE pg_default;
 
-ALTER TABLE public.parque
+ALTER TABLE public.park
     OWNER to postgres;
 -- Index: sidx_parque_geom
 
 -- DROP INDEX public.sidx_parque_geom;
 
-CREATE INDEX sidx_parque_geom
-    ON public.parque USING gist
-    (geom)
+CREATE INDEX sidx_park_geo
+    ON public.park USING gist
+    (geo)
     TABLESPACE pg_default;
