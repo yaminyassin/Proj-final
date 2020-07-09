@@ -23,7 +23,7 @@ router.get("/parksnearme/:lat/:long", async (req, res) =>{
         var lat = req.params.lat;
         var long = req.params.long;
         console.log([lat, long])
-        const query = await pool.query(`SELECT st_asgeojson(geo) as geo,
+        const query = await pool.query(`SELECT st_asgeojson(geo) as geo, nvagos,
                                         ROUND(100-(nvagos/nlugares)*100) as Ocupado,
                                         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
                                         FROM park 
@@ -43,7 +43,7 @@ router.get("/parksnearme/:lat/:long/:dist", async(req, res) =>{
         var long = req.params.long;
         var dist = req.params.dist;
         console.log([lat, long, dist])
-        const query = await pool.query(`SELECT st_asgeojson(geo) as geo,
+        const query = await pool.query(`SELECT st_asgeojson(geo) as geo, nvagos,
                             ROUND(100 - (nvagos/nlugares)*100 ) as Ocupado,
                             ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
                             FROM park 
