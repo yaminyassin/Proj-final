@@ -10,9 +10,9 @@
     "pg": "^8.2.1"
   },
   "scripts": {
-    "start": "nodemon index.js",
-    "test": "node index.js"
+    "test": "nodemon index.js",
+    "start": "node index.js"
   },
-  "author": "",
+  "author": "Yamin&Sofia",
   "license": "ISC"
 }

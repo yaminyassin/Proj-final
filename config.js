@@ -6,7 +6,7 @@ const dbConfig =
     host: "192.168.99.100",
     database: 'location',
     password: 'postgres',
-    port: 5555
+    port: process.env.PORT ||5555
 };
 
 const queryConfig = 
