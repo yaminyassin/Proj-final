@@ -6,7 +6,7 @@
     npm install pg --save
     npm install nodemon --save
 
-2- Verificar dos dados de acesso à BD no ficheiro routes.js
+2- Verificar dos dados de acesso à BD no ficheiro config.js
 
 <Se quiseres usar o docker (nao é obrigatorio) segue estas instrucoes abaixo>
 -a seguir para iniciar servidor docker:
