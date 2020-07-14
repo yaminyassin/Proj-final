@@ -5,7 +5,7 @@ const dbConfig =
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASS ||'postgres',
     database: process.env.DB_NAME || 'location',
-    host:  process.env.DB_CONNECTION_NAME || "192.168.99.100",
+    host:  process.env.DB_CONNECTION_NAME ,
     port: process.env.DB_PORT || 5555
 };
 
