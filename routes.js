@@ -1,51 +1,70 @@
 const process = require('process');
-const config = require("./config");
 const express = require("express");
 const {Pool} = require('pg');
-
 const router = express.Router();
 router.use(express.json())
 
+const connectWithTcp = () => {
+    const dbSocketAddr = process.env.DB_HOST.split(":"); // e.g. '127.0.0.1:5432'
+    return new Pool({
+        user: process.env.DB_USER, // e.g. 'my-user'
+        password: process.env.DB_PASSWORD, // e.g. 'my-user-password'
+        database: process.env.DB_NAME, // e.g. 'my-database'
+        host: dbSocketAddr[0], // e.g. '127.0.0.1'
+        port: dbSocketAddr[1], // e.g. '5432'
+        connectionTimeoutMillis: 60000,
+        idleTimeoutMillis: 600000
+    });
+}
+
+const connectWithUnixSockets = () => {
+    const dbSocketPath = process.env.DB_SOCKET_PATH || "/cloudsql"
+    return new Pool({
+        user: process.env.DB_USER, // e.g. 'my-user'
+        password: process.env.DB_PASSWORD, // e.g. 'my-user-password'
+        database: process.env.DB_NAME, // e.g. 'my-database'
+        host: `${dbSocketPath}/${process.env.DB_CONNECTION_NAME}`,
+        connectionTimeoutMillis: 60000,
+        idleTimeoutMillis: 600000
+    });
+}  
 
 const connect = () => {
-    if ( process.env.DB_CONNECTION_NAME 
-    ){
-        console.log("entrei");
-        config.dbConfig.host = `/cloudsql/${process.env.DB_CONNECTION_NAME}`;
+    let pool;
+    if (process.env.DB_HOST) {
+      pool = connectWithTcp();
+    } else {
+      pool = connectWithUnixSockets();
     }
-    console.log(config.dbConfig.host);
-    const pool = new Pool(config.dbConfig);
     return pool;
-};
-
+  };
+  
 const pool = connect();
 
-const limit = config.queryConfig.limit;
-const srid = config.queryConfig.srid;
-
-/*-----------QUERIES PARK TAB---------*/
 router.get("/parksnearme/:lat/:long", async (req, res) =>{
     try {
         var lat = req.params.lat;
         var long = req.params.long;
-        console.log([lat, long])
         
-        const query = await pool.query(`
+        const client = await pool.connect();
+        
+        await client.query(`
         SELECT st_asgeojson(geo) as geo, nfreespots,
         ROUND(100-(nfreespots/nspots)*100) as Ocupado,
-        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),geo::geography))/1000 as dist 
+        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM park 
         WHERE nfreespots <> 0
-        ORDER BY dist ASC limit ${limit}`);
+        ORDER BY dist ASC limit 8`);
+
+        client.release(true);
         
         res.status(200).json(query.rows)
-        
+      
     } catch (error) {
         console.error(error.message)
         res.status(400).send(error.message)
     }
 })
-
 
 router.get("/parksnearme/:lat/:long/:dist", async(req, res) =>{
     try {
@@ -57,10 +76,10 @@ router.get("/parksnearme/:lat/:long/:dist", async(req, res) =>{
         const query = await pool.query(`
         SELECT st_asgeojson(geo) as geo, nfreespots,
         ROUND(100 - (nfreespots/nspots)*100 ) as Ocupado,
-        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),geo::geography))/1000 as dist 
+        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM park 
-        WHERE (nfreespots <> 0 AND ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),geo::geography))/1000 > ${dist})
-        ORDER BY dist ASC limit ${limit}`);
+        WHERE (nfreespots <> 0 AND ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 > ${dist})
+        ORDER BY dist ASC limit 8`);
 
         res.status(200).json(query.rows)
     } catch (error) {
@@ -79,9 +98,9 @@ router.get("/placesnearme/:lat/:long", async (req, res) =>{
         const query = await pool.query(`
         SELECT st_asgeojson(geo) as geo, name,
         about, category, photo_path,
-        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),geo::geography))/1000 as dist 
+        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM place 
-        ORDER BY dist ASC limit ${limit}`)
+        ORDER BY dist ASC limit 8`)
 
         res.status(200).json(query.rows)
     } catch (error) {
@@ -101,10 +120,10 @@ router.get("/placesnearme/:lat/:long/:dist", async(req, res) =>{
         const query = await pool.query(`
         SELECT st_asgeojson(geo) as geo, name,
         about, category, photo_path,
-        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),geo::geography))/1000 as dist 
+        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM place 
-        WHERE ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),geo::geography))/1000 > ${dist}
-        ORDER BY dist ASC limit ${limit}`);
+        WHERE ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 > ${dist}
+        ORDER BY dist ASC limit 8`);
 
         res.status(200).json(query.rows)
     } catch (error) {
@@ -122,11 +141,11 @@ router.get("/notifs/:lat/:long", async (req, res) =>{
 
         const query = await pool.query(`
         SELECT *,
-        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),p.geo::geography))/1000 as dist
+        ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),p.geo::geography))/1000 as dist
         FROM place as p JOIN notif as n
         ON n.idplace = p.id 
         WHERE CURRENT_DATE <= n.date_end
-        ORDER BY dist ASC limit ${limit}`
+        ORDER BY dist ASC limit 8`
         );
 
         res.status(200).json(query.rows)
@@ -146,9 +165,9 @@ router.get("/notifs/:lat/:long/:dist", async (req, res) =>{
         SELECT *
         FROM place as p JOIN notif as n
         ON n.idplace = p.id
-        WHERE ( ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),p.geo::geography))/1000 > ${dist} 
+        WHERE ( ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),p.geo::geography))/1000 > ${dist} 
         AND CURRENT_DATE <= n.date_end )
-        ORDER BY ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, ${srid}),p.geo::geography))/1000 > ${dist} ASC limit ${limit}`
+        ORDER BY ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),p.geo::geography))/1000 > ${dist} ASC limit 8`
         );
 
         res.status(200).json(query.rows)

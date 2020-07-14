@@ -1,12 +1,10 @@
-runtime: nodejs
-env: flex
+runtime: nodejs12
 
 env_variables:
     DB_USER: postgres
     DB_PASSWORD: postgres
     DB_NAME: location
     DB_CONNECTION_NAME: daring-feat-273619:europe-west1:projetoleim55
-    DB_PORT: 5432
 
 beta_settings:
     cloud_sql_instances: daring-feat-273619:europe-west1:projetoleim55
