@@ -2,11 +2,11 @@
 
 const dbConfig = 
 {
-    user: 'postgres',
-    host: "192.168.99.100",
-    database: 'location',
-    password: 'postgres',
-    port: process.env.PORT ||5555
+    user: process.env.DB_USER || 'postgres',
+    password: process.env.DB_PASS ||'postgres',
+    database: process.env.DB_NAME || 'location',
+    host:  "192.168.99.100",
+    port: 5432
 };
 
 const queryConfig = 
@@ -16,7 +16,7 @@ const queryConfig =
 }
 
 const expressConfig = {
-  port:3000,
+  port: process.env.PORT || 8080,
   hostname: '192.168.99.100'
 }
   

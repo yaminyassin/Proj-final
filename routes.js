@@ -169,6 +169,7 @@ router.get("/parkUpdate/:id/:nfreespots", async (req, res) =>{
         const nfreespots = req.params.nfreespots;
         
         const query = await pool.query( `UPDATE park SET nfreespots=${nfreespots} WHERE id=${id}`);
+        
         res.status(200).json(`park updated Succesfully with ${nfreespots} free spots `);
     } catch (err) { 
         console.error(err.message)
