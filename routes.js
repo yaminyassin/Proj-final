@@ -1,13 +1,24 @@
-const {Pool} = require('pg');
+const process = require('process');
 const config = require("./config");
 const express = require("express");
+const {Pool} = require('pg');
 
 const router = express.Router();
-
 router.use(express.json())
 
 
-const pool = new Pool(config.dbConfig);
+const connect = () => {
+    if ( process.env.DB_CONNECTION_NAME 
+    ){
+        console.log("entrei");
+        config.dbConfig.host = `/cloudsql/${process.env.DB_CONNECTION_NAME}`;
+    }
+    console.log(config.dbConfig.host);
+    const pool = new Pool(config.dbConfig);
+    return pool;
+};
+
+const pool = connect();
 
 const limit = config.queryConfig.limit;
 const srid = config.queryConfig.srid;
