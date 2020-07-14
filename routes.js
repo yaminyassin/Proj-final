@@ -5,11 +5,11 @@ const router = express.Router();
 router.use(express.json())
 
 const connectWithTcp = () => {
-    const dbSocketAddr = process.env.DB_HOST.split(":"); // e.g. '127.0.0.1:5432'
+    const dbSocketAddr = '192.168.99.100:5555'.split(':');//process.env.DB_HOST.split(":"); // e.g. '127.0.0.1:5432'
     return new Pool({
-        user: process.env.DB_USER, // e.g. 'my-user'
-        password: process.env.DB_PASSWORD, // e.g. 'my-user-password'
-        database: process.env.DB_NAME, // e.g. 'my-database'
+        user: process.env.DB_USER || 'postgres', // e.g. 'my-user'
+        password: process.env.DB_PASSWORD || 'postgres', // e.g. 'my-user-password'
+        database: process.env.DB_NAME || 'location', // e.g. 'my-database'
         host: dbSocketAddr[0], // e.g. '127.0.0.1'
         port: dbSocketAddr[1], // e.g. '5432'
         connectionTimeoutMillis: 60000,
@@ -20,10 +20,10 @@ const connectWithTcp = () => {
 const connectWithUnixSockets = () => {
     const dbSocketPath = process.env.DB_SOCKET_PATH || "/cloudsql"
     return new Pool({
-        user: process.env.DB_USER, // e.g. 'my-user'
-        password: process.env.DB_PASSWORD, // e.g. 'my-user-password'
-        database: process.env.DB_NAME, // e.g. 'my-database'
-        host: `${dbSocketPath}/${process.env.DB_CONNECTION_NAME}`,
+        user: process.env.DB_USER || 'postgres', // e.g. 'my-user'
+        password: process.env.DB_PASSWORD || 'postgres', // e.g. 'my-user-password'
+        database: process.env.DB_NAME || 'location', // e.g. 'my-database'
+        host: `${dbSocketPath}/${process.env.DB_CONNECTION_NAME}` || '192.168.99.100',
         connectionTimeoutMillis: 60000,
         idleTimeoutMillis: 600000
     });
@@ -48,7 +48,7 @@ router.get("/parksnearme/:lat/:long", async (req, res) =>{
         
         const client = await pool.connect();
         
-        await client.query(`
+        const query = await client.query(`
         SELECT st_asgeojson(geo) as geo, nfreespots,
         ROUND(100-(nfreespots/nspots)*100) as Ocupado,
         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 

@@ -1,16 +1,13 @@
-
-const config = require("./config").expressConfig;
 const express = require ("express");
 const routes = require('./routes');
-
+const process = require('process');
 
 const app = express();
 
 app.use(express.json());
 app.use('/movel', routes);
 
-PORT = config.port;
-HOST = config.hostname;
+PORT = process.env.PORT || 3000;
 
 app.get('/', (req, res) => {
     res.send('Hello World');

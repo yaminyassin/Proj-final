@@ -6,5 +6,3 @@ env_variables:
     DB_NAME: location
     DB_CONNECTION_NAME: daring-feat-273619:europe-west1:projetoleim55
 
-beta_settings:
-    cloud_sql_instances: daring-feat-273619:europe-west1:projetoleim55
