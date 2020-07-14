@@ -47,7 +47,6 @@ router.get("/parksnearme/:lat/:long", async (req, res) =>{
         var long = req.params.long;
         
         const client = await pool.connect();
-        
         const query = await client.query(`
         SELECT st_asgeojson(geo) as geo, nfreespots,
         ROUND(100-(nfreespots/nspots)*100) as Ocupado,
@@ -55,7 +54,6 @@ router.get("/parksnearme/:lat/:long", async (req, res) =>{
         FROM park 
         WHERE nfreespots <> 0
         ORDER BY dist ASC limit 8`);
-
         client.release(true);
         
         res.status(200).json(query.rows)
@@ -71,15 +69,16 @@ router.get("/parksnearme/:lat/:long/:dist", async(req, res) =>{
         var lat = req.params.lat;
         var long = req.params.long;
         var dist = req.params.dist;
-        console.log([lat, long, dist])
 
-        const query = await pool.query(`
+        const client = await pool.connect();
+        const query = await client.query(`
         SELECT st_asgeojson(geo) as geo, nfreespots,
         ROUND(100 - (nfreespots/nspots)*100 ) as Ocupado,
         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM park 
         WHERE (nfreespots <> 0 AND ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 > ${dist})
         ORDER BY dist ASC limit 8`);
+        client.release(true);
 
         res.status(200).json(query.rows)
     } catch (error) {
@@ -95,12 +94,14 @@ router.get("/placesnearme/:lat/:long", async (req, res) =>{
         var lat = req.params.lat;
         var long = req.params.long;
         
-        const query = await pool.query(`
+        const client = await pool.connect();
+        const query = await client.query(`
         SELECT st_asgeojson(geo) as geo, name,
         about, category, photo_path,
         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM place 
-        ORDER BY dist ASC limit 8`)
+        ORDER BY dist ASC limit 8`);
+        client.release(true);
 
         res.status(200).json(query.rows)
     } catch (error) {
@@ -115,15 +116,16 @@ router.get("/placesnearme/:lat/:long/:dist", async(req, res) =>{
         var lat = req.params.lat;
         var long = req.params.long;
         var dist = req.params.dist;
-        console.log([lat, long, dist])
 
-        const query = await pool.query(`
+        const client = await pool.connect();
+        const query = await client.query(`
         SELECT st_asgeojson(geo) as geo, name,
         about, category, photo_path,
         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM place 
         WHERE ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 > ${dist}
         ORDER BY dist ASC limit 8`);
+        client.release(true);
 
         res.status(200).json(query.rows)
     } catch (error) {
@@ -139,7 +141,8 @@ router.get("/notifs/:lat/:long", async (req, res) =>{
         var lat = req.params.lat;
         var long = req.params.long;
 
-        const query = await pool.query(`
+        const client = await pool.connect();
+        const query = await client.query(`
         SELECT *,
         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),p.geo::geography))/1000 as dist
         FROM place as p JOIN notif as n
@@ -147,7 +150,8 @@ router.get("/notifs/:lat/:long", async (req, res) =>{
         WHERE CURRENT_DATE <= n.date_end
         ORDER BY dist ASC limit 8`
         );
-
+        client.release(true);
+        
         res.status(200).json(query.rows)
     } catch (error) {
         console.error(error.message)
@@ -161,7 +165,8 @@ router.get("/notifs/:lat/:long/:dist", async (req, res) =>{
         var long = req.params.long;
         var dist = req.params.dist;
 
-        const query = await pool.query(`
+        const client = await pool.connect();
+        const query = await client.query(`
         SELECT *
         FROM place as p JOIN notif as n
         ON n.idplace = p.id
@@ -169,6 +174,7 @@ router.get("/notifs/:lat/:long/:dist", async (req, res) =>{
         AND CURRENT_DATE <= n.date_end )
         ORDER BY ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),p.geo::geography))/1000 > ${dist} ASC limit 8`
         );
+        client.release(true);
 
         res.status(200).json(query.rows)
     } catch (error) {
@@ -184,7 +190,11 @@ router.get("/notifs/:lat/:long/:dist", async (req, res) =>{
 router.get("/parkInfo/:id", async (req, res) =>{
     try {
         const id = req.params.id.toString(); //req.body.id.toString();
-        const query = await pool.query("SELECT nspots, nfreespots from park where id=$1", [id])
+
+        const client = await pool.connect();
+        const query = await client.query("SELECT nspots, nfreespots from park where id=$1", [id])
+        client.release(true);
+
         res.status(200).json(query.rows)
     } catch (err) {
         console.error(err.message)
@@ -197,9 +207,11 @@ router.get("/parkUpdate/:id/:nfreespots", async (req, res) =>{
     try {
         const id = req.params.id;
         const nfreespots = req.params.nfreespots;
-        
+
+        const client = await pool.connect();
         const query = await pool.query( `UPDATE park SET nfreespots=${nfreespots} WHERE id=${id}`);
-        
+        client.release(true);
+
         res.status(200).json(`park updated Succesfully with ${nfreespots} free spots `);
     } catch (err) { 
         console.error(err.message)
