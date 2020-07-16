@@ -97,7 +97,7 @@ router.get("/placesnearme/:lat/:long", async (req, res) =>{
         const client = await pool.connect();
         const query = await client.query(`
         SELECT st_asgeojson(geo) as geo, name,
-        about, category, photo_path,
+        about, category, photo_path, id,
         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM place 
         ORDER BY dist ASC limit 8`);
@@ -120,7 +120,7 @@ router.get("/placesnearme/:lat/:long/:dist", async(req, res) =>{
         const client = await pool.connect();
         const query = await client.query(`
         SELECT st_asgeojson(geo) as geo, name,
-        about, category, photo_path,
+        about, category, photo_path, id,
         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 as dist 
         FROM place 
         WHERE ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),geo::geography))/1000 > ${dist}
