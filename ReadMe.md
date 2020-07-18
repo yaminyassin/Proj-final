@@ -2,7 +2,7 @@
 Este servico serve como middleware entre a camara e a aplicacao IONIC com a base de dados
 
 # REQUIREMENTS
-Deve ter o nodeJS instalado com os seguntes modulos:
+1. Deve ter o nodeJS instalado com os seguntes modulos:
     - express
     - pg 
     - cors
