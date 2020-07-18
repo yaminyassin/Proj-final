@@ -4,14 +4,18 @@ const {Pool} = require('pg');
 const router = express.Router();
 router.use(express.json())
 
+const localconfig = require('./localConfig');
+
+
+
 const connectWithTcp = () => {
-    const dbSocketAddr = '192.168.99.100:5555'.split(':');//process.env.DB_HOST.split(":"); // e.g. '127.0.0.1:5432'
+    const dbSocketAddr = process.env.DB_HOST.split(":"); 
     return new Pool({
-        user: process.env.DB_USER || 'postgres', // e.g. 'my-user'
-        password: process.env.DB_PASSWORD || 'postgres', // e.g. 'my-user-password'
-        database: process.env.DB_NAME || 'location', // e.g. 'my-database'
-        host: dbSocketAddr[0], // e.g. '127.0.0.1'
-        port: dbSocketAddr[1], // e.g. '5432'
+        user: process.env.DB_USER || localconfig.user,
+        password: process.env.DB_PASSWORD || localconfig.password, 
+        database: process.env.DB_NAME || localconfig.password,
+        host: dbSocketAddr[0] || localconfig.host,
+        port: dbSocketAddr[1] || localconfig.port,
         connectionTimeoutMillis: 60000,
         idleTimeoutMillis: 600000
     });
@@ -20,10 +24,10 @@ const connectWithTcp = () => {
 const connectWithUnixSockets = () => {
     const dbSocketPath = process.env.DB_SOCKET_PATH || "/cloudsql"
     return new Pool({
-        user: process.env.DB_USER || 'postgres', // e.g. 'my-user'
-        password: process.env.DB_PASSWORD || 'postgres', // e.g. 'my-user-password'
-        database: process.env.DB_NAME || 'location', // e.g. 'my-database'
-        host: `${dbSocketPath}/${process.env.DB_CONNECTION_NAME}` || '192.168.99.100',
+        user: process.env.DB_USER,
+        password: process.env.DB_PASSWORD, 
+        database: process.env.DB_NAME, 
+        host: `${dbSocketPath}/${process.env.DB_CONNECTION_NAME}`,
         connectionTimeoutMillis: 60000,
         idleTimeoutMillis: 600000
     });
@@ -40,6 +44,21 @@ const connect = () => {
   };
   
 const pool = connect();
+
+
+router.get("/categories", async (req, res) =>{
+    try {
+        const client = await pool.connect();
+        const query = await client.query(`SELECT DISTINCT(category) from place`);
+        client.release(true);
+        
+        res.status(200).json(query.rows)
+      
+    } catch (error) {
+        console.error(error.message)
+        res.status(400).send(error.message)
+    }
+})
 
 router.get("/parksnearme/:lat/:long", async (req, res) =>{
     try {
@@ -145,7 +164,7 @@ router.get("/notifs/:lat/:long", async (req, res) =>{
         const query = await client.query(`
         SELECT *,
         ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),p.geo::geography))/1000 as dist
-        FROM place as p JOIN notif as n
+        FROM place as p JOIN notification as n
         ON n.idplace = p.id 
         WHERE CURRENT_DATE <= n.date_end
         ORDER BY dist ASC limit 8`
@@ -168,7 +187,7 @@ router.get("/notifs/:lat/:long/:dist", async (req, res) =>{
         const client = await pool.connect();
         const query = await client.query(`
         SELECT *
-        FROM place as p JOIN notif as n
+        FROM place as p JOIN notification as n
         ON n.idplace = p.id
         WHERE ( ROUND(st_distance(ST_SetSRID( ST_Point(${long}, ${lat})::geography, 4326),p.geo::geography))/1000 > ${dist} 
         AND CURRENT_DATE <= n.date_end )
