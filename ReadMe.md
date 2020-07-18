@@ -13,3 +13,6 @@ Pode instalar cada modulo atraves do comando:
 
 Para inicializar o servico basta abrir uma nova linha de comandos no projeto e escrever **npm test**
 
+Para parar o servico basta na linha e comando clicar  **ctrl + C**
+
+
