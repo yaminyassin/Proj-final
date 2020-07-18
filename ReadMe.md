@@ -9,7 +9,7 @@ Este servico serve como middleware entre a camara e a aplicacao IONIC com a base
     - nodemon
 
 Pode instalar cada modulo atraves do comando: 
-    **npm install *<nome do modulo>* --save**
+    **npm install <<nome do modulo>> --save**
 
 Para inicializar o servico basta abrir uma nova linha de comandos no projeto e escrever **npm test**
 
